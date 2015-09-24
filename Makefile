@@ -15,4 +15,10 @@ all: vcfhp
 clean:
 	rm -rf vcfhp
 
-.PHONY: all clean
+test: vcfhp
+	rm -rf tests/ref.fa.fai
+	./vcfhp tests/ref.fa tests/in.vcf > tests/out.vcf
+	diff -q tests/out.vcf tests/ans.vcf
+	@echo Looks good.
+
+.PHONY: all clean test

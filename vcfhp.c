@@ -122,7 +122,7 @@ int main(int argc, char **argv)
         free(reg);
 
         // Annotate
-        if(hp) {
+        if(hp > 1) {
           int a = bcf_update_info_int32(hdrout, v, "HRun", &hp, 1);
           if(a < 0) die("VCF annotation error");
         }
