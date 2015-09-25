@@ -72,7 +72,7 @@ int main(int argc, char **argv)
   bcf_hdr_t *hdrin = bcf_hdr_read(vin);
   bcf_hdr_t *hdrout = bcf_hdr_dup(hdrin);
   bcf_hdr_append(hdrout, "##INFO=<ID=HRun,Number=1,Type=Integer,Description=\"Homopolymer run bases in the reference\">\n");
-  bcf_hdr_write(vout, hdrout);
+  if(bcf_hdr_write(vout, hdrout) != 0) die("Cannot write header");
 
   // read vcf entries
   bcf1_t *v = bcf_init();
