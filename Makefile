@@ -5,7 +5,7 @@
 HTSLIB=../htslib
 
 CFLAGS=-Wall -Wextra -O2
-LIBS=-lz -lm
+LIBS=-lz -lm -lpthread
 
 all: vcfhp
 
