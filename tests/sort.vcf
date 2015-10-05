@@ -1,0 +1,37 @@
+##fileformat=VCFv4.1
+##FILTER=<ID=PASS,Description="All filters passed">
+##INFO=<ID=K29,Number=0,Type=Flag,Description="Found at k=29">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##reference=ref/ref.fa
+##contig=<ID=ref,length=599>
+##contig=<ID=2,length=11>
+##fileDate=20150920
+#CHROM POS ID REF ALT QUAL FILTER INFO FORMAT ben jerry
+2	1	idm	A	C	.	PASS	.	GT	.	.
+2	1	id9	ACT	ACTT	.	PASS	.	GT	.	.
+2	1	id7	ACTTTTTTGTA	ACTTTTGTA	.	PASS	.	GT	.	.
+2	1	id6	ACTTTTTTGTA	ACTTTTTTTGTA	.	PASS	.	GT	.	.
+2	2	idb	C	CT	.	PASS	.	GT	.	.
+2	2	idn	C	T	.	PASS	.	GT	.	.
+2	2	ida	CT	C	.	PASS	.	GT	.	.
+2	2	idk	CT	T	.	PASS	.	GT	.	.
+2	2	id8	CTTTTTTG	CTTTTTTTG	.	PASS	.	GT	.	.
+2	3	ido	T	C	.	PASS	.	GT	.	.
+2	3	idd	T	TT	.	PASS	.	GT	.	.
+2	3	idc	TT	T	.	PASS	.	GT	.	.
+2	5	idf	T	TTTT	.	PASS	.	GT	.	.
+2	5	idg	T	TTTTTTTTTT	.	PASS	.	GT	.	.
+2	5	ide	TT	T	.	PASS	.	GT	.	.
+2	7	idh	TTG	G	.	PASS	.	GT	.	.
+2	8	idp	T	A	.	PASS	.	GT	.	.
+2	8	idi	TG	G	.	PASS	.	GT	.	.
+2	8	idl	TG	T	.	PASS	.	GT	.	.
+2	9	idq	G	T	.	PASS	.	GT	.	.
+2	9	idj	G	TTG	.	PASS	.	GT	.	.
+2	10	idr	T	G	.	PASS	.	GT	.	.
+2	11	ids	A	T	.	PASS	.	GT	.	.
+ref	125	id1	C	CA	.	PASS	K29	GT	1	1
+ref	166	id2	C	A	.	PASS	K29	GT	.	1
+ref	273	id3	TAG	T	.	PASS	K29	GT	1	.
+ref	421	id4	G	T	.	PASS	K29	GT	.	1
+ref	537	id5	GACAT	G	.	PASS	K29	GT	.	1

@@ -7,17 +7,21 @@ HTSLIB=../htslib
 CFLAGS=-Wall -Wextra -O2
 LIBS=-lz -lm -lpthread
 
-all: vcfhp
+all: bin/vcfhp bin/vcfdist bin/vcfcontigs
 
-%: %.c
-	$(CC) $(CFLAGS) -I $(HTSLIB)/htslib -o $@ $< $(HTSLIB)/libhts.a $(LIBS)
+bin/%: src/%.c
+	mkdir -p bin
+	$(CC) $(CFLAGS) -o $@ -I $(HTSLIB)/htslib $< $(HTSLIB)/libhts.a $(LIBS)
+
+$(DIRS):
+	mkdir -p bin
 
 clean:
-	rm -rf vcfhp
+	rm -rf bin
 
-test: vcfhp
+test: bin/vcfhp
 	rm -rf tests/ref.fa.fai
-	./vcfhp tests/ref.fa tests/in.vcf > tests/out.vcf
+	bin/vcfhp tests/ref.fa tests/in.vcf > tests/out.vcf
 	diff -q tests/out.vcf tests/ans.vcf
 	@echo Looks good.
 

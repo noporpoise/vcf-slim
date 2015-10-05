@@ -62,11 +62,11 @@ int main(int argc, char **argv)
   htsFile *vout = hts_open(out_path, "w");
   if(vout == NULL) die("Cannot write %s: %s", out_path, strerror(errno));
 
-  // Build ref.fa.fai with: samtools faidx ref.fa
+  // Note: Build ref.fa.fai manually with: samtools faidx ref.fa
 
   // open ref
   faidx_t *fai = fai_load(ref_path);
-  if(fai == NULL) die("Build %s.fai: bcftools index %s", ref_path, ref_path);
+  if(fai == NULL) die("Build %s.fai: samtools faidx %s", ref_path, ref_path);
 
   // read/write headers
   bcf_hdr_t *hdrin = bcf_hdr_read(vin);
