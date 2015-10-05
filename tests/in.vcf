@@ -5,6 +5,7 @@
 ##reference=ref/ref.fa
 ##contig=<ID=ref,length=599>
 ##contig=<ID=2,length=11>
+##contig=<ID=3,length=11>
 ##fileDate=20150920
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	ben	jerry
 ref	77	id0	AC	A	.	PASS	K29	GT	1	.
@@ -36,3 +37,4 @@ ref	537	id5	GACAT	G	.	PASS	K29	GT	.	1
 2	9	idq	G	T	.	PASS	.	GT	.	.
 2	10	idr	T	G	.	PASS	.	GT	.	.
 2	11	ids	A	T	.	PASS	.	GT	.	.
+3	6	idt	AC	ACACAC	.	PASS	.	GT	.	.

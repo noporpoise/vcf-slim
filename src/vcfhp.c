@@ -16,7 +16,7 @@ const char *cmd = NULL;
 static void print_usage()
 {
   fprintf(stderr, "usage: %s <ref.fa> <in.vcf>\n", cmd);
-  fprintf(stderr, "  Add homopolymer run annotations to VCF files.\n");
+  fprintf(stderr, "  Add homopolymer run annotations to VCF files (HRun=).\n");
   fprintf(stderr, "  Prints to STDOUT.\n");
   exit(-1);
 }
@@ -24,26 +24,17 @@ static void print_usage()
 #define MIN2(a,b) ((a) <= (b) ? (a) : (b))
 #define MAX2(a,b) ((a) >= (b) ? (a) : (b))
 
-static inline int bases_match(char *ref, int reflen, char *alt, int altlen)
-{
-  // Check all bases are the same
-  int i;
-  char b = reflen ? ref[0] : alt[0];
-  for(i = 0; i < reflen; i++) { if(ref[i] != b) return 0; }
-  for(i = 0; i < altlen; i++) { if(alt[i] != b) return 0; }
-  return 1;
-}
-
 // Call bases_match() and check reflen != altlen
+// Note: hp may be less than variant length
+// pos is relative start in reg
 static inline int calc_homopolymer(char *ref, int reflen, char *alt, int altlen,
                                    int pos, char *reg, int reglen)
 {
-  (void)altlen;
-  int i, j;
-  char b = reflen ? ref[0] : alt[0];
-  for(i = pos-1; i >= 0 && reg[i] == b; i--) {}
-  for(j = pos+reflen; j < reglen && reg[j] == b; j++) {}
-  int hp = j - i - 1;
+  int i, k, hp = 0;
+  const char *r = reflen ? ref : alt;
+  int rl = reflen ? reflen : altlen;
+  for(i = pos-1, k=rl-1; i >= 0 && reg[i] == r[k]; i--, k = k ? k-1 : rl-1) hp++;
+  for(i = pos+reflen, k=0; i < reglen && reg[i] == r[k]; i++, k++, k=k<rl?k:0) hp++;
   return hp;
 }
 
@@ -71,7 +62,8 @@ int main(int argc, char **argv)
   // read/write headers
   bcf_hdr_t *hdrin = bcf_hdr_read(vin);
   bcf_hdr_t *hdrout = bcf_hdr_dup(hdrin);
-  bcf_hdr_append(hdrout, "##INFO=<ID=HRun,Number=1,Type=Integer,Description=\"Homopolymer run bases in the reference\">\n");
+  bcf_hdr_append(hdrout, "##INFO=<ID=HRun,Number=1,Type=Integer,Description=\""
+                         "Homopolymer run in ref in bp (not including variant)\">\n");
   if(bcf_hdr_write(vout, hdrout) != 0) die("Cannot write header");
 
   // read vcf entries
@@ -104,8 +96,8 @@ int main(int argc, char **argv)
         reflen--; altlen--;
       }
 
-      // Only deal with insertions / deletions of the same base
-      if(reflen != altlen && bases_match(ref, reflen, alt, altlen))
+      // Only deal with insertions / deletions
+      if(reflen != altlen)
       {
         // Fetch window bp either side
         int chromlen = faidx_seq_len(fai, bcf_seqname(hdrin, v));

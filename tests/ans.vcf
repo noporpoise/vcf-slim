@@ -5,35 +5,37 @@
 ##reference=ref/ref.fa
 ##contig=<ID=ref,length=599>
 ##contig=<ID=2,length=11>
+##contig=<ID=3,length=11>
 ##fileDate=20150920
-##INFO=<ID=HRun,Number=1,Type=Integer,Description="Homopolymer run bases in the reference">
+##INFO=<ID=HRun,Number=1,Type=Integer,Description="Homopolymer run in ref in bp (not including variant)">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	ben	jerry
-ref	77	id0	AC	A	.	PASS	K29;HRun=3	GT	1	.
+ref	77	id0	AC	A	.	PASS	K29;HRun=2	GT	1	.
 ref	125	id1	C	CA	.	PASS	K29	GT	1	1
 ref	166	id2	C	A	.	PASS	K29	GT	.	1
 ref	273	id3	TAG	T	.	PASS	K29	GT	1	.
 ref	421	id4	G	T	.	PASS	K29	GT	.	1
 ref	537	id5	GACAT	G	.	PASS	K29	GT	.	1
-2	1	id9	ACTTTTTTGTA	ACTTTTTTTGTA	.	PASS	HRun=6	GT	.	.
-2	1	id9	ACTTTTTTGTA	ACTTTTGTA	.	PASS	HRun=6	GT	.	.
-2	2	id9	CTTTTTTG	CTTTTTTTG	.	PASS	HRun=6	GT	.	.
+2	1	id6	ACTTTTTTGTA	ACTTTTTTTGTA	.	PASS	HRun=6	GT	.	.
+2	1	id7	ACTTTTTTGTA	ACTTTTGTA	.	PASS	HRun=4	GT	.	.
+2	2	id8	CTTTTTTG	CTTTTTTTG	.	PASS	HRun=6	GT	.	.
 2	1	id9	ACT	ACTT	.	PASS	HRun=6	GT	.	.
-2	2	ida	CT	C	.	PASS	HRun=6	GT	.	.
+2	2	ida	CT	C	.	PASS	HRun=5	GT	.	.
 2	2	idb	C	CT	.	PASS	HRun=6	GT	.	.
-2	3	idb	TT	T	.	PASS	HRun=6	GT	.	.
-2	3	idb	T	TT	.	PASS	HRun=6	GT	.	.
-2	5	idb	TT	T	.	PASS	HRun=6	GT	.	.
-2	5	idb	T	TTTT	.	PASS	HRun=6	GT	.	.
-2	5	idb	T	TTTTTTTTTT	.	PASS	HRun=6	GT	.	.
-2	7	idb	TTG	G	.	PASS	HRun=6	GT	.	.
-2	8	idb	TG	G	.	PASS	HRun=6	GT	.	.
-2	9	idb	G	TTG	.	PASS	HRun=6	GT	.	.
-2	2	idb	CT	T	.	PASS	.	GT	.	.
-2	8	idb	TG	T	.	PASS	.	GT	.	.
-2	1	id6	A	C	.	PASS	.	GT	.	.
-2	2	id7	C	T	.	PASS	.	GT	.	.
-2	3	id8	T	C	.	PASS	.	GT	.	.
-2	8	id6	T	A	.	PASS	.	GT	.	.
-2	9	id6	G	T	.	PASS	.	GT	.	.
-2	10	id7	T	G	.	PASS	.	GT	.	.
-2	11	id8	A	T	.	PASS	.	GT	.	.
+2	3	idc	TT	T	.	PASS	HRun=5	GT	.	.
+2	3	idd	T	TT	.	PASS	HRun=6	GT	.	.
+2	5	ide	TT	T	.	PASS	HRun=5	GT	.	.
+2	5	idf	T	TTTT	.	PASS	HRun=6	GT	.	.
+2	5	idg	T	TTTTTTTTTT	.	PASS	HRun=6	GT	.	.
+2	7	idh	TTG	G	.	PASS	HRun=4	GT	.	.
+2	8	idi	TG	G	.	PASS	HRun=5	GT	.	.
+2	9	idj	G	TTG	.	PASS	HRun=6	GT	.	.
+2	2	idk	CT	T	.	PASS	.	GT	.	.
+2	8	idl	TG	T	.	PASS	.	GT	.	.
+2	1	idm	A	C	.	PASS	.	GT	.	.
+2	2	idn	C	T	.	PASS	.	GT	.	.
+2	3	ido	T	C	.	PASS	.	GT	.	.
+2	8	idp	T	A	.	PASS	.	GT	.	.
+2	9	idq	G	T	.	PASS	.	GT	.	.
+2	10	idr	T	G	.	PASS	.	GT	.	.
+2	11	ids	A	T	.	PASS	.	GT	.	.
+3	6	idt	AC	ACACAC	.	PASS	HRun=7	GT	.	.
