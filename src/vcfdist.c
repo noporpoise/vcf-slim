@@ -44,9 +44,8 @@ static inline int var_left_trim(const bcf1_t *v)
 static inline int var_right_trim(const bcf1_t *v)
 {
   // Loop over alleles
-  int i, alen, minlen, trim = v->rlen, t;
-  for(i = 1; i < v->n_allele && trim; i++)
-  {
+  int i, alen, trim = v->rlen, t;
+  for(i = 1; i < v->n_allele && trim; i++) {
     alen = strlen(v->d.allele[i]);
     trim = MIN2(trim, alen);
     t = 0;
