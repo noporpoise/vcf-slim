@@ -27,9 +27,14 @@ static void print_usage()
 #define MAX2(a,b) ((a) >= (b) ? (a) : (b))
 
 #define keepv(a,b,dist) ((a)->rid != (b)->rid || (a)->pos + (a)->rlen + (dist) <= (b)->pos)
-#define write_var(vout,hdr,v) do { \
-  if(bcf_write(vout, hdr, v) != 0) die("Cannot write record"); \
-} while(0)
+
+size_t nread = 0, nwritten = 0;
+
+static inline void write_var(htsFile *vout, bcf_hdr_t *hdr, bcf1_t *v)
+{
+  if(bcf_write(vout, hdr, v) != 0) die("Cannot write record");
+  nwritten++;
+}
 
 static inline int var_left_trim(const bcf1_t *v)
 {
@@ -96,6 +101,8 @@ int main(int argc, char **argv)
   bcf_hdr_t *hdr = bcf_hdr_read(vin);
   if(bcf_hdr_write(vout, hdr) != 0) die("Cannot write header");
 
+  fprintf(stderr, "[vcfdist] Trimming alleles: %s\n", TRIM_ALLELES ? "yes" : "no");
+
   // read vcf entries
   size_t i, nv;
   int maxend = 0;
@@ -108,6 +115,7 @@ int main(int argc, char **argv)
   for(nv = 0; nv < 3; nv++) {
     if(bcf_read(vin, hdr, v[nv]) < 0) break;
     bcf_unpack(v[nv], BCF_UN_STR);
+    nread++;
   }
 
   if(nv == 1) {
@@ -129,6 +137,7 @@ int main(int argc, char **argv)
     do
     {
       bcf_unpack(v[2], BCF_UN_STR);
+      nread++;
       kn = keepv2(v[1], v[2], dist, &maxend);
       if(kp && kn) write_var(vout, hdr, v[1]);
       kp = kn;
@@ -139,6 +148,10 @@ int main(int argc, char **argv)
   }
 
   for(i = 0; i < 3; i++) bcf_destroy(v[i]);
+
+  // Print stats
+  fprintf(stderr, "[vcfdist] Printed %zu / %zu (%.2f%%)\n", nwritten, nread,
+                  (100.0*nwritten) / nread);
 
   bcf_hdr_destroy(hdr);
   hts_close(vin);
