@@ -3,17 +3,14 @@
 #include <stdbool.h>
 #include <errno.h>
 
+#include "common.h"
+
 #include "hts.h"
 #include "vcf.h"
 #include "faidx.h"
 
 const bool TRIM_ALLELES = false;
 const char *cmd = NULL;
-
-#define die(fmt,...) do { \
-  fprintf(stderr, "[%s:%i] Error: %s() "fmt"\n", __FILE__, __LINE__, __func__, ##__VA_ARGS__); \
-  exit(EXIT_FAILURE); \
-} while(0)
 
 static void print_usage()
 {
@@ -22,9 +19,6 @@ static void print_usage()
   fprintf(stderr, "  Input must be sorted. We trim alleles. Print to STDOUT.\n");
   exit(-1);
 }
-
-#define MIN2(a,b) ((a) <= (b) ? (a) : (b))
-#define MAX2(a,b) ((a) >= (b) ? (a) : (b))
 
 #define keepv(a,b,dist) ((a)->rid != (b)->rid || (a)->pos + (a)->rlen + (dist) <= (b)->pos)
 

@@ -2,16 +2,13 @@
 #include <stdio.h>
 #include <errno.h>
 
+#include "common.h"
+
 #include "hts.h"
 #include "vcf.h"
 #include "faidx.h"
 
 const char *cmd = NULL;
-
-#define die(fmt,...) do { \
-  fprintf(stderr, "[%s:%i] Error: %s() "fmt"\n", __FILE__, __LINE__, __func__, ##__VA_ARGS__); \
-  exit(EXIT_FAILURE); \
-} while(0)
 
 static void print_usage()
 {
@@ -20,9 +17,6 @@ static void print_usage()
   fprintf(stderr, "  Prints to STDOUT.\n");
   exit(-1);
 }
-
-#define MIN2(a,b) ((a) <= (b) ? (a) : (b))
-#define MAX2(a,b) ((a) >= (b) ? (a) : (b))
 
 // Call bases_match() and check reflen != altlen
 // Note: hp may be less than variant length

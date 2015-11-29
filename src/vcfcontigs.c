@@ -3,6 +3,9 @@
 #include <stdbool.h>
 #include <errno.h>
 #include <assert.h>
+#include <getopt.h>
+
+#include "common.h"
 
 #include "hts.h"
 #include "vcf.h"
@@ -10,59 +13,84 @@
 
 const char *cmd = NULL;
 
-#define die(fmt,...) do { \
-  fprintf(stderr, "[%s:%i] Error: %s() "fmt"\n", __FILE__, __LINE__, __func__, ##__VA_ARGS__); \
-  exit(EXIT_FAILURE); \
-} while(0)
+const char usage[] = 
+"  Print <flank> bp either side of a variant, as FASTA to STDOUT.\n"
+"  Options:\n"
+"   -t,--trim      Remove matching bases from left and right of alleles\n"
+"   -R,--no-ref    Don't print ref contig\n";
 
 static void print_usage()
 {
-  fprintf(stderr, "usage: %s <flank> <ref.fa> <in.vcf>\n", cmd);
-  fprintf(stderr, "  Print <flank> bp either side of a variant\n");
-  fprintf(stderr, "  Print FASTA to STDOUT.\n");
+  fprintf(stderr, "usage: %s [options] <flank> <ref.fa> <in.vcf>\n", cmd);
+  fprintf(stderr, usage);
   exit(-1);
 }
 
-#define MIN2(a,b) ((a) <= (b) ? (a) : (b))
-#define MAX2(a,b) ((a) >= (b) ? (a) : (b))
+static const char shortopts[] = "tR";
 
-static inline void fetch_chrom(const bcf_hdr_t *hdr, bcf1_t *v,
-                               faidx_t *fai, int *refid,
-                               char **chrom, int *chromlen)
+static struct option longopts[] =
 {
-  if(*refid != v->rid) {
-    free(*chrom);
-    *chrom = fai_fetch(fai, bcf_seqname(hdr, v), chromlen);
-    if(*chrom == NULL) die("Cannot find chrom '%s'", bcf_seqname(hdr, v));
-    *refid = v->rid;
-  }
-}
+  {"trim",    no_argument, NULL, 't'},
+  {"no-ref",  no_argument, NULL, 'R'},
+  {NULL, 0, NULL, 0}
+};
 
-static inline void print_var(bcf_hdr_t *hdr, bcf1_t *v, int flank,
+static inline void print_var(bcf_hdr_t *hdr, bcf1_t *v,
+                             int flank, bool print_ref, bool print_alt,
+                             bool trim_seqs,
                              char *chrom, int chromlen)
 {
   assert(chrom);
 
   FILE *fout = stdout;
-  char *str, *estr;
-  int i, start, end;
+  char *str, *estr, *astr;
+  int start, end;
+  size_t ltrim = 0, rtrim = 0, trim, pos, rlen, alen, i;
+  size_t first = print_ref ? 0 : 1, last = print_alt ? v->n_allele : 1;
 
-  start = MAX2(0, v->pos - flank);
-  end = MIN2(chromlen, v->pos + v->rlen + flank);
+  // trim alleles
+  if(trim_seqs) trim_alleles(v, &ltrim, &rtrim);
+  trim = ltrim + rtrim;
+  pos = v->pos + ltrim;
+  rlen = v->rlen - trim;
+  start = MAX2(0, pos - flank);
+  end = MIN2(chromlen, (int)(pos + rlen + flank));
 
-  for(i = 0; i < v->n_allele; i++) {
-    fprintf(fout, ">%s_%s_%i_%i\n", v->d.id, bcf_seqname(hdr, v), v->pos, i);
-    for(str = chrom+start, estr = chrom+v->pos; str < estr; str++)
-      fputc(*str, fout);
-    fputs(v->d.allele[i], fout);
-    for(str = chrom+v->pos+v->rlen, estr = chrom+end; str < estr; str++)
-      fputc(*str, fout);
+  for(i = first; i < last; i++)
+  {
+    astr = v->d.allele[i];
+    alen = strlen(v->d.allele[i]);
+    fprintf(fout, ">%s_%i_%s_%s_%s_%zu_%zu_%zu\n", bcf_seqname(hdr, v), v->pos,
+            v->d.id, v->d.allele[0], v->d.allele[i], i, rtrim, ltrim);
+    for(str = chrom+start, estr = chrom+pos; str < estr; str++) fputc(*str, fout);
+    for(str = astr+ltrim, estr = astr+alen-trim; str < estr; str++) fputc(*str, fout);
+    for(str = chrom+pos+rlen, estr = chrom+end; str < estr; str++) fputc(*str, fout);
     fputc('\n', fout);
   }
 }
 
 int main(int argc, char **argv)
 {
+  bool trim_alleles = false, print_ref = true, print_alt = true;
+
+  // Arg parsing
+  int c;
+  // silence error messages from getopt_long
+  // opterr = 0;
+
+  while((c = getopt_long_only(argc, argv, shortopts, longopts, NULL)) != -1) {
+    switch(c) {
+      case 0: /* flag set */ break;
+      case 't': trim_alleles = true; break;
+      case 'R': print_ref = false; break;
+      case ':': /* BADARG */
+      case '?': /* BADCH getopt_long has already printed error */
+        die("Bad option: %s", argv[optind-1]);
+      default:
+        die("Coder error");
+    }
+  }
+
   cmd = argv[0];
   if(argc != 4) print_usage();
 
@@ -95,7 +123,8 @@ int main(int argc, char **argv)
   {
     bcf_unpack(v, BCF_UN_STR);
     fetch_chrom(hdr, v, fai, &refid, &chrom, &chromlen);
-    print_var(hdr, v, flank, chrom, chromlen);
+    print_var(hdr, v, flank, print_ref, print_alt, trim_alleles,
+              chrom, chromlen);
   }
 
   free(chrom);
