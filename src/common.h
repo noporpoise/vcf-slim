@@ -57,7 +57,7 @@ static inline size_t trimmed_alt(const bcf1_t *v, size_t aid,
 
 static inline void trim_alleles(const bcf1_t *v, size_t *ltrimptr, size_t *rtrimptr)
 {
-  size_t i, rtrim, ltrim, tmp_ltrim, tmp_rtrim, rlen2, alen2;
+  size_t i, ltrim, rtrim, tmp_ltrim, tmp_rtrim, rlen2, alen2;
   ltrim = trimmed_alt(v, 1, &rlen2, &alen2);
   rtrim = v->rlen - (ltrim + rlen2);
 
@@ -67,6 +67,8 @@ static inline void trim_alleles(const bcf1_t *v, size_t *ltrimptr, size_t *rtrim
     ltrim = MIN2(ltrim, tmp_ltrim);
     rtrim = MIN2(rtrim, tmp_rtrim);
   }
+
+  // fprintf(stderr, " ltrim:%zu rtrim:%zu\n", ltrim, rtrim);
 
   *ltrimptr = ltrim;
   *rtrimptr = rtrim;

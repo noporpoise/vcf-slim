@@ -3,13 +3,18 @@
 #   make HTSLIB=~/bioinf/htslib/
 
 HTSLIB=../htslib
-
-CFLAGS=-Wall -Wextra -O2
 LIBS=-lz -lm -lpthread
+CFLAGS=-Wall -Wextra $(OPTS)
+
+ifdef DEBUG
+	OPTS=-O0 -g
+else
+	OPTS=-O2
+endif
 
 all: bin/vcfhp bin/vcfdist bin/vcfcontigs
 
-bin/%: src/%.c
+bin/%: src/%.c src/common.h
 	mkdir -p bin
 	$(CC) $(CFLAGS) -o $@ -I $(HTSLIB)/htslib $< $(HTSLIB)/libhts.a $(LIBS)
 

@@ -16,8 +16,9 @@ const char *cmd = NULL;
 const char usage[] = 
 "  Print <flank> bp either side of a variant, as FASTA to STDOUT.\n"
 "  Options:\n"
-"   -t,--trim      Remove matching bases from left and right of alleles\n"
-"   -R,--no-ref    Don't print ref contig\n";
+"   -t,--trim         Remove matching bases from left and right of alleles\n"
+"   -R,--no-ref       Don't print ref contig\n"
+"   -A,--max-alt <A>  Skip ALTs longer than <A>\n";
 
 static void print_usage()
 {
@@ -26,25 +27,28 @@ static void print_usage()
   exit(-1);
 }
 
-static const char shortopts[] = "tR";
+static const char shortopts[] = "tRA:";
 
 static struct option longopts[] =
 {
-  {"trim",    no_argument, NULL, 't'},
-  {"no-ref",  no_argument, NULL, 'R'},
+  {"trim",          no_argument, NULL, 't'},
+  {"no-ref",        no_argument, NULL, 'R'},
+  {"max-alt", required_argument, NULL, 'A'},
   {NULL, 0, NULL, 0}
 };
 
+size_t n_max_ref_skipped = 0, n_max_alt_skipped = 0;
+
 static inline void print_var(bcf_hdr_t *hdr, bcf1_t *v,
-                             int flank, bool print_ref, bool print_alt,
-                             bool trim_seqs,
+                             int flank, bool trim_seqs, int max_alt,
+                             bool print_ref, bool print_alt,
                              char *chrom, int chromlen)
 {
   assert(chrom);
 
   FILE *fout = stdout;
   char *str, *estr, *astr;
-  int start, end;
+  int start, end, j;
   size_t ltrim = 0, rtrim = 0, trim, pos, rlen, alen, i;
   size_t first = print_ref ? 0 : 1, last = print_alt ? v->n_allele : 1;
 
@@ -52,16 +56,37 @@ static inline void print_var(bcf_hdr_t *hdr, bcf1_t *v,
   if(trim_seqs) trim_alleles(v, &ltrim, &rtrim);
   trim = ltrim + rtrim;
   pos = v->pos + ltrim;
+  // fprintf(stderr, "trim:%zu rlen:%i\n", trim, v->rlen);
+  assert((size_t)v->rlen >= trim);
   rlen = v->rlen - trim;
   start = MAX2(0, pos - flank);
   end = MIN2(chromlen, (int)(pos + rlen + flank));
+
+  if(max_alt > 0) {
+    if(rlen > (size_t)max_alt) {
+      n_max_ref_skipped++;
+      return;
+    }
+    for(j = 1; j < v->n_allele; j++)
+      if(strlen(v->d.allele[j])-trim <= (size_t)max_alt)
+        break;
+    if(j == v->n_allele) {
+      n_max_alt_skipped += v->n_allele-1;
+      return;
+    }
+  }
 
   for(i = first; i < last; i++)
   {
     astr = v->d.allele[i];
     alen = strlen(v->d.allele[i]);
-    fprintf(fout, ">%s_%i_%s_%s_%s_%zu_%zu_%zu\n", bcf_seqname(hdr, v), v->pos,
-            v->d.id, v->d.allele[0], v->d.allele[i], i, rtrim, ltrim);
+    if(max_alt > 0 && alen > (size_t)max_alt) {
+      n_max_alt_skipped++;
+      continue;
+    }
+    fprintf(fout, ">%s:%i:%s:%s:%s:%zu:pos:%zu:ltrim:%zu:rtrim:%zu\n",
+            bcf_seqname(hdr, v), v->pos+1, v->d.id, v->d.allele[0], v->d.allele[i],
+            i, pos-start, ltrim, rtrim);
     for(str = chrom+start, estr = chrom+pos; str < estr; str++) fputc(*str, fout);
     for(str = astr+ltrim, estr = astr+alen-trim; str < estr; str++) fputc(*str, fout);
     for(str = chrom+pos+rlen, estr = chrom+end; str < estr; str++) fputc(*str, fout);
@@ -71,7 +96,9 @@ static inline void print_var(bcf_hdr_t *hdr, bcf1_t *v,
 
 int main(int argc, char **argv)
 {
+  cmd = argv[0];
   bool trim_alleles = false, print_ref = true, print_alt = true;
+  int max_alt = -1;
 
   // Arg parsing
   int c;
@@ -83,6 +110,7 @@ int main(int argc, char **argv)
       case 0: /* flag set */ break;
       case 't': trim_alleles = true; break;
       case 'R': print_ref = false; break;
+      case 'A': max_alt = atoi(optarg); break;
       case ':': /* BADARG */
       case '?': /* BADCH getopt_long has already printed error */
         die("Bad option: %s", argv[optind-1]);
@@ -91,19 +119,25 @@ int main(int argc, char **argv)
     }
   }
 
-  cmd = argv[0];
-  if(argc != 4) print_usage();
+  if(optind + 3 != argc) print_usage();
 
-  int flank = atoi(argv[1]);
-  const char *ref_path = argv[2];
-  const char *vcf_path = argv[3];
+  char **args = argv + optind;
+  int flank = atoi(args[0]);
+  const char *ref_path = args[1];
+  const char *vcf_path = args[2];
   const char *out_path = "-";
+
+  fprintf(stderr, "[vcfcontigs] flank: %i\n", flank);
+  fprintf(stderr, "[vcfcontigs] ref: %s\n", ref_path);
+  fprintf(stderr, "[vcfcontigs] vcf: %s\n", vcf_path);
+  fprintf(stderr, "[vcfcontigs] out: %s\n", out_path);
+  fprintf(stderr, "[vcfcontigs] max-alt: %i\n", max_alt);
 
   // open input / output
   htsFile *vin = hts_open(vcf_path, "r");
   if(vin == NULL) die("Cannot read %s: %s", vcf_path, strerror(errno));
-  htsFile *vout = hts_open(out_path, "w");
-  if(vout == NULL) die("Cannot write %s: %s", out_path, strerror(errno));
+  // htsFile *vout = hts_open(out_path, "w");
+  // if(vout == NULL) die("Cannot write %s: %s", out_path, strerror(errno));
 
   // read header
   bcf_hdr_t *hdr = bcf_hdr_read(vin);
@@ -123,7 +157,8 @@ int main(int argc, char **argv)
   {
     bcf_unpack(v, BCF_UN_STR);
     fetch_chrom(hdr, v, fai, &refid, &chrom, &chromlen);
-    print_var(hdr, v, flank, print_ref, print_alt, trim_alleles,
+    print_var(hdr, v, flank, trim_alleles, max_alt,
+              print_ref, print_alt,
               chrom, chromlen);
   }
 
@@ -132,7 +167,10 @@ int main(int argc, char **argv)
 
   bcf_hdr_destroy(hdr);
   hts_close(vin);
-  hts_close(vout);
+  // hts_close(vout);
+
+  fprintf(stderr, "[vcfcontigs] skipped %zu refs\n", n_max_ref_skipped);
+  fprintf(stderr, "[vcfcontigs] skipped %zu alts\n", n_max_alt_skipped);
 
   return EXIT_SUCCESS;
 }
