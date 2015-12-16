@@ -15,6 +15,10 @@ const char *cmd = NULL;
 
 const char usage[] = 
 "  Print <flank> bp either side of a variant, as FASTA to STDOUT.\n"
+"\n"
+"  Contigs are named:\n"
+"    CHROM:POS:ID:REF:ALT:ALTIDX:pos:OFFSET:ltrim:LTRIM:rtrim:RTRIM\n"
+"\n"
 "  Options:\n"
 "   -t,--trim         Remove matching bases from left and right of alleles\n"
 "   -R,--no-ref       Don't print ref contig\n"
