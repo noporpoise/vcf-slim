@@ -66,11 +66,13 @@ static inline void print_var(bcf_hdr_t *hdr, bcf1_t *v,
   start = MAX2(0, pos - flank);
   end = MIN2(chromlen, (int)(pos + rlen + flank));
 
-  if(max_alt > 0) {
+  if(print_ref && max_alt > 0) {
+    // Check ref allele isn't too long
     if(rlen > (size_t)max_alt) {
       n_max_ref_skipped++;
       return;
     }
+    // Must have at least one valid ALT if we're printing ref allele
     for(j = 1; j < v->n_allele; j++)
       if(strlen(v->d.allele[j])-trim <= (size_t)max_alt)
         break;
@@ -82,8 +84,9 @@ static inline void print_var(bcf_hdr_t *hdr, bcf1_t *v,
 
   for(i = first; i < last; i++)
   {
-    astr = v->d.allele[i];
-    alen = strlen(v->d.allele[i]);
+    // Fetch and trim allele
+    astr = v->d.allele[i] + ltrim;
+    alen = strlen(v->d.allele[i]) - trim;
     if(max_alt > 0 && alen > (size_t)max_alt) {
       n_max_alt_skipped++;
       continue;
@@ -92,7 +95,7 @@ static inline void print_var(bcf_hdr_t *hdr, bcf1_t *v,
             bcf_seqname(hdr, v), v->pos+1, v->d.id, v->d.allele[0], v->d.allele[i],
             i, pos-start, ltrim, rtrim);
     for(str = chrom+start, estr = chrom+pos; str < estr; str++) fputc(*str, fout);
-    for(str = astr+ltrim, estr = astr+alen-trim; str < estr; str++) fputc(*str, fout);
+    for(str = astr, estr = astr+alen; str < estr; str++) fputc(*str, fout);
     for(str = chrom+pos+rlen, estr = chrom+end; str < estr; str++) fputc(*str, fout);
     fputc('\n', fout);
   }
