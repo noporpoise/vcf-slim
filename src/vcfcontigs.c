@@ -17,7 +17,13 @@ const char usage[] =
 "  Print <flank> bp either side of a variant, as FASTA to STDOUT.\n"
 "\n"
 "  Contigs are named:\n"
-"    CHROM:POS:ID:REF:ALT:ALTIDX:pos:OFFSET:ltrim:LTRIM:rtrim:RTRIM\n"
+"    CHROM:POS:ID:REFLEN:ALTLEN:ALTIDX:pos:OFFSET:ltrim:LTRIM:rtrim:RTRIM\n"
+"      CHROM,POS,ID are taken from the VCF, POS is 1-based\n"
+"      REFLEN, ALTLEN are allele lengths in the VCF\n"
+"      ALTIDX is allele index (0=>ref, 1=> first ALT, ...)\n"
+"      RELPOS is start of ref allele in contig (0-based)\n"
+"      LTRIM is number of bases trimmed from left side\n"
+"      RTRIM is number of bases trimmed from right side\n"
 "\n"
 "  Options:\n"
 "   -t,--trim         Remove matching bases from left and right of alleles\n"
@@ -91,8 +97,8 @@ static inline void print_var(bcf_hdr_t *hdr, bcf1_t *v,
       n_max_alt_skipped++;
       continue;
     }
-    fprintf(fout, ">%s:%i:%s:%s:%s:%zu:pos:%zu:ltrim:%zu:rtrim:%zu\n",
-            bcf_seqname(hdr, v), v->pos+1, v->d.id, v->d.allele[0], v->d.allele[i],
+    fprintf(fout, ">%s:%i:%s:%zu:%zu:%zu:pos:%zu:ltrim:%zu:rtrim:%zu\n",
+            bcf_seqname(hdr, v), v->pos+1, v->d.id, (size_t)v->rlen, alen+trim,
             i, pos-start, ltrim, rtrim);
     for(str = chrom+start, estr = chrom+pos; str < estr; str++) fputc(*str, fout);
     for(str = astr, estr = astr+alen; str < estr; str++) fputc(*str, fout);
